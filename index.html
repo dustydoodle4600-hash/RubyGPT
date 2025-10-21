@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RubyGPT Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #202123; color: #ececf1; }
+    #app { max-width: 720px; margin: 20px auto; }
+    select, input, button { font-size: 1rem; padding: 0.5rem; }
+    .chat-window { border: 1px solid #444; padding: 1rem; height: 500px; overflow-y: auto; background: #343541; }
+    .message { margin-bottom: 1rem; }
+    .user { color: #9aedfe; }
+    .bot { color: #e6e6e6; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>RubyGPT Chat</h1>
+    <label for="model">Choose AI Model:</label>
+    <select id="model">
+      <option value="chatgpt">ChatGPT (OpenAI)</option>
+      <option value="rubyai-beta">RubyAI Beta (Custom AI)</option>
+      <option value="gemini">Gemini (Coming Soon)</option>
+      <option value="grok">Grok (Coming Soon)</option>
+    </select>
+    <div class="chat-window" id="chatWindow"></div>
+    <form id="chatForm">
+      <input id="chatInput" autocomplete="off" placeholder="Type your message..." style="width: 80%;" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatWindow = document.getElementById('chatWindow');
+    const modelSelect = document.getElementById('model');
+
+    function appendMessage(sender, text) {
+      const div = document.createElement('div');
+      div.classList.add('message');
+      div.classList.add(sender === 'user' ? 'user' : 'bot');
+      div.textContent = (sender === 'user' ? 'You: ' : 'RubyGPT: ') + text;
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      appendMessage('user', message);
+      chatInput.value = '';
+      chatInput.disabled = true;
+
+      const model = modelSelect.value;
+
+      try {
+        // CHANGE THIS URL to your deployed backend URL later!
+        const backendUrl = 'https://your-backend-url.onrender.com/api/chat';
+
+        const res = await fetch(backendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, model }),
+        });
+        const data = await res.json();
+        appendMessage('bot', data.reply);
+      } catch {
+        appendMessage('bot', 'Error: failed to get response');
+      } finally {
+        chatInput.disabled = false;
+        chatInput.focus();
+      }
+    });
+
+    chatInput.focus();
+  </script>
+</body>
+</html>
